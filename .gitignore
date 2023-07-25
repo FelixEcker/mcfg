@@ -1,0 +1,4 @@
+*valgrind*
+*vgcore*
+out/
+mcfg_test

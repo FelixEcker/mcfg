@@ -1,0 +1,24 @@
+sector .config
+  ; mariebuild c buildscript template from mbinit
+  ; author: Marie Eckert
+
+  fields depends:
+    str includes '-Isrc'
+
+  fields mariebuild:
+    str binname   'mcfg_test'
+    str compiler 'gcc'
+
+    list files 'butter/strutils.c:mcfg.c:test_parse.c'
+
+    str std_flags     '-Wall $(depends/includes) -c -o'
+    str debug_flags   '-ggdb'
+    str release_flags '-O3'
+
+    str comp_cmd '$(compiler) $(mode_flags) $(std_flags) out/$(file).o src/$(file)'
+    str finalize_cmd '$(compiler) $(mode_flags) -o $(binname) out/$(files).o'
+
+  lines text:
+Lorum ipsum dolor sit amet
+test
+foo bar
