@@ -443,10 +443,10 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   memcpy(result+offs, str_terminator, 1);
 
   free(field_cpy);
-  if (prefix != NULL && strcmp(prefix, "") != 0)
+  if (prefix != NULL)
     free(prefix);
-  if (postfix != NULL && strcmp(postfix, "") != 0)
-    free(postfix);
+  if (postfix != NULL) 
+		free(postfix);
 
   return result;
 }
@@ -477,7 +477,8 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
 
       // terminator offset
       int term_offs = len-2;
-      if (is_local) {
+      
+			if (is_local) {
         // Subtract two from length to account for $() = -3
         // and the NULL Byte = +1
         name = malloc(strlen(context) + (len - 1));
