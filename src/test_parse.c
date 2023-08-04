@@ -43,7 +43,7 @@ int main() {
     print_structure(file);
 		char *resolved = resolve_fields((*file),
               find_field(file, ".config/mariebuild/finalize_cmd")->value, 
-              ".config/mariebuild/"
+              ".config/mariebuild/", 0
            );
     printf("%s\n", resolved);
 		free(resolved);

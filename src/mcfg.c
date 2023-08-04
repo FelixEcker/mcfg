@@ -404,7 +404,10 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
     postfix_len = strlen(postfix);
 
   char delimiter[] = ":";
-  char *field_cpy = resolve_fields(file, field.value, context);
+  char *field_cpy = resolve_fields(file, field.value, context, 1);
+
+	printf("prefix=%s\n", prefix);
+	printf("postfix=%s\n", postfix);
 
   char *f_elem = strtok(field_cpy, delimiter);
   if (f_elem == NULL)
@@ -455,7 +458,8 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
 /* TODO: This is singlehandidly the worst code ive ever written, this needs a
  * desperate cleanup its so fucking long and confusing
  * */
-char *resolve_fields(struct mcfg_file file, char *in, char *context) {
+char *resolve_fields(struct mcfg_file file, char *in, char *context, 
+                       int leave_lists) {
   int n_fields = 0;
   int *field_indexes = malloc(sizeof(int));
   int *field_lens    = malloc(sizeof(int));
@@ -513,11 +517,10 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
         goto resolve_fields_stop;
 
       char *val_tmp;
-      if (field->type == FT_LIST) {
+      if (field->type == FT_LIST && leave_lists != 1) {
         val_tmp = format_list_field(file, (*field), context, in, i, len);
-
       } else {
-        val_tmp = resolve_fields(file, field->value, context);
+        val_tmp = resolve_fields(file, field->value, context, leave_lists);
       }
 
       printf("val_tmp=%s\n", val_tmp);

@@ -138,11 +138,13 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
  * references with their corresponding values.
  *
  * Parameters:
- *   file   : The build file structure containing the sectors,
- *          | sections, and fields.
- *   in     : The input string to be resolved.
- *   context: The context in which the field references should be resolved.
- *          | It specifies the path prefix for the field lookups.
+ *   file       : The build file structure containing the sectors,
+ *              | sections, and fields.
+ *   in         : The input string to be resolved.
+ *   context    : The context in which the field references should be resolved.
+ *              | It specifies the path prefix for the field lookups.
+ *   leave_lists: If set to 1 lists are not formatted, any other value will
+ *                cause lists to be formatted
  *
  * Returns:
  *   A dynamically allocated string containing the resolved input string.
@@ -162,6 +164,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
  *     The caller must free the memory allocated for the resolved string
  *     when it's no longer needed.
  */
-char *resolve_fields(struct mcfg_file file, char *in, char *context);
+char *resolve_fields(struct mcfg_file file, char *in, char *context, 
+                       int leave_lists);
 
 #endif
