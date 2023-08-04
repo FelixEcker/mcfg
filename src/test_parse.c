@@ -41,12 +41,12 @@ int main() {
     printf("Parsing failed: 0x%.8x\n", result);
   } else {
     print_structure(file);
-    printf("%s\n",
-           resolve_fields((*file),
+		char *resolved = resolve_fields((*file),
               find_field(file, ".config/mariebuild/finalize_cmd")->value, 
               ".config/mariebuild/"
-           )
-          );
+           );
+    printf("%s\n", resolved);
+		free(resolved);
   }
 
   free_mcfg_file(file);
