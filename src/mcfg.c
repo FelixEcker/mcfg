@@ -387,12 +387,12 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   int prefix_len = 0;
   int postfix_len = 0;
 
-  if (prefix[strlen(prefix)-1] == ':' && field.type == LIST) {
+  if (prefix[strlen(prefix)-1] == ':' && field.type == FT_LIST) {
     free(prefix);
     prefix = NULL;
   }
 
-  if (postfix[0] == ':' && field.type == LIST) {
+  if (postfix[0] == ':' && field.type == FT_LIST) {
     free(postfix);
     postfix = NULL;
   }
