@@ -1,0 +1,41 @@
+; BUILDFILE FOR MARIEBUILD
+; REMOVE FROM THIS REPOSITORY AFTER BUGS ARE FIXED
+
+sector .config
+  fields depends:
+    str includes 'include/'
+    str libdir   'lib/'
+    str libs     '-Llib/ -lmcfg'
+    list srcs     'aa:'
+  
+  fields mariebuild:
+    str name          'mb'
+    str compiler      'gcc'
+    str src_dir       'src'
+    str obj_dir       'out'
+ 
+    str shell         'bash'
+
+    list srcs          'mb_utils.c:mb_script.c:mb_execute.c:mb.c'
+    list files         '$(depends/srcs):$(srcs)'
+
+    str std_flags     '-Wall -I$(depends/includes)'
+    str debug_flags   '-ggdb'
+    str release_flags '-O3'
+ 
+    str comp_cmd      '$(compiler) $(mode_flags) $(std_flags) -c -o $(obj_dir)/$(file).o $(src_dir)/$(file)'
+    str finalize_cmd  '$(compiler) $(mode_flags) -o $(name) out/$(files).o $(depends/libs)'
+
+sector .scripts
+  lines stripfile:
+    args file
+    shell sed -i 's/[ \t]*$//' $(file)
+
+  lines stripall:
+    opt_args prefix postfix
+
+    for file : $(.config/mariebuild/files)
+      call stripfile $(prefix)file$(postfix)
+
+  lines prepare:
+    call stripall
