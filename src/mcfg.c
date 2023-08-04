@@ -379,6 +379,7 @@ mcfg_field *find_field(struct mcfg_file* file, char *path) {
 
 char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
                          char *in, int in_offs, int len) {
+  if (in == NULL || strcmp(in, "") == 0) return "";
   char *prefix = bstrcpy_until(in+in_offs-1, in, ' ');
   char *postfix = strcpy_until(in+in_offs+len+1, ' ');
 
@@ -386,6 +387,9 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   char *field_cpy = resolve_fields(file, field.value, context);
 
   char *f_elem = strtok(field_cpy, delimiter);
+  if (f_elem == NULL)
+    return "";
+
   char *result = malloc(strlen(f_elem)+strlen(prefix)+strlen(postfix)+1);
 
   int offs = 0;
@@ -418,8 +422,10 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   memcpy(result+offs, str_terminator, 1);
 
   free(field_cpy);
-  free(prefix);
-  free(postfix);
+  if (prefix != NULL && strcmp(prefix, "") != 0)
+    free(prefix);
+  if (postfix != NULL && strcmp(postfix, "") != 0)
+    free(postfix);
 
   return result;
 }
@@ -563,7 +569,8 @@ resolve_fields_finished:
   free(field_indexes);
   free(field_lens);
   for (int i = 0; i < n_fields; i++)
-    free(fieldvals[i]);
+    if (fieldvals[i] != NULL && strcmp(fieldvals[i], "") != 0)
+      free(fieldvals[i]);
   free(fieldvals);
 
   return out;
