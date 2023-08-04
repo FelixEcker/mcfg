@@ -443,9 +443,9 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   memcpy(result+offs, str_terminator, 1);
 
   free(field_cpy);
-  if (prefix != NULL)
+  if (prefix != NULL && strcmp(prefix, "") != 0)
     free(prefix);
-  if (postfix != NULL) 
+  if (postfix != NULL && strcmp(postfix, "") != 0)
 		free(postfix);
 
   return result;
