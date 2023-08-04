@@ -406,9 +406,6 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   char delimiter[] = ":";
   char *field_cpy = resolve_fields(file, field.value, context, 1);
 
-	printf("prefix=%s\n", prefix);
-	printf("postfix=%s\n", postfix);
-
   char *f_elem = strtok(field_cpy, delimiter);
   if (f_elem == NULL)
     return "";
@@ -418,7 +415,6 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   const int base_size = prefix_len+postfix_len+2;
   int offs = 0;
   while (f_elem != NULL) {
-    printf("f_elem=%s\n", f_elem);
     if (offs > 0) {
       int size =
         strlen(result)+strlen(f_elem)+base_size;
@@ -522,8 +518,6 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
       } else {
         val_tmp = resolve_fields(file, field->value, context, leave_lists);
       }
-
-      printf("val_tmp=%s\n", val_tmp);
 
       n_fields++;
       if (n_fields > 1) {
