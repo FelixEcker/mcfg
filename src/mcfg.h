@@ -22,17 +22,26 @@
 #define MCFG_PERR_DUPLICATE_FIELD    0x10000004
 #define MCFG_PERR_INVALID_IDENTIFIER 0x10000005
 #define MCFG_PERR_INVALID_SYNTAX     0x10000006
+#define MCFG_PERR_INVALID_FTYPE      0x10000007
+#define MCFG_PERR_INVALID_STYPE      0x10000008
 #define MCFG_ERR_MASK_ERRNO          0xf0000000
 
+/* Used to set the type of a field. If the type ever is FT_UNKOWN an error
+ * should be thrown
+ */
 typedef enum mcfg_ftype {
-  STRING,
-  LIST,
-  UNKNOWN
+  FT_STRING,
+  FT_LIST,
+  FT_UNKNOWN
 } mcfg_ftype;
 
+/* Used to set the type of a sector. If the type ever is ST_UNKNOWN an error
+ * should be thrown
+ */
 typedef enum mcfg_stype {
-  FIELDS,
-  LINES
+  ST_FIELDS,
+  ST_LINES,
+	ST_UNKNOWN
 } mcfg_stype;
 
 /* Holds a field specified within a config section.

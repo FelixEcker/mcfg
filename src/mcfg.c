@@ -23,6 +23,28 @@
 
 #include <butter/strutils.h>
 
+/******** file private ********/
+
+static mcfg_stype strtostype(char *str) {
+  if (strcmp(str, "fields") == 0)
+    return ST_FIELDS;
+
+  if (strcmp(str, "lines") == 0)
+    return ST_LINES;
+
+  return ST_UNKNOWN;
+}
+
+static mcfg_ftype strtoftype(char *str) {
+  if (strcmp(str, "str") == 0)
+    return FT_STRING;
+
+  if (strcmp(str, "list") == 0)
+    return FT_LIST;
+
+  return FT_UNKNOWN;
+}
+
 /******** mcfg.h ********/
 
 void free_mcfg_file(mcfg_file* file) {
@@ -124,26 +146,6 @@ int register_field(struct mcfg_section* section, mcfg_ftype type,
   return MCFG_OK;
 }
 
-mcfg_stype strtostype(char *str) {
-  if (strcmp(str, "fields") == 0)
-    return FIELDS;
-
-  if (strcmp(str, "lines") == 0)
-    return LINES;
-
-  return UNKNOWN;
-}
-
-mcfg_ftype strtoftype(char *str) {
-  if (strcmp(str, "str") == 0)
-    return STRING;
-
-  if (strcmp(str, "list") == 0)
-    return LIST;
-
-  return UNKNOWN;
-}
-
 int parse_line(struct mcfg_file* file, char *line) {
   char delimiter[] = " ";
   line = trim_whitespace(line);
@@ -158,7 +160,7 @@ int parse_line(struct mcfg_file* file, char *line) {
 
     if (strcmp(token, "fields") == 0 || strcmp(token, "lines") == 0) {
       mcfg_stype type = strtostype(token);
-      if (type == UNKNOWN)
+      if (type == ST_UNKNOWN)
         return MCFG_PERR_INVALID_SYNTAX;
 
       token = strtok(NULL, delimiter);
@@ -181,7 +183,7 @@ int parse_line(struct mcfg_file* file, char *line) {
     mcfg_sector *sector = &file->sectors[file->sector_count-1];
     mcfg_section *section = &sector->sections[sector->section_count-1];
 
-    if (section->type == FIELDS) {
+    if (section->type == ST_FIELDS) {
       mcfg_ftype type = strtoftype(token);
       token = strtok(NULL, delimiter);
       if (token == NULL)
@@ -490,7 +492,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
         goto resolve_fields_stop;
 
       char *val_tmp;
-      if (field->type == LIST) {
+      if (field->type == FT_LIST) {
         val_tmp = format_list_field(file, (*field), context, in, i, len);
       } else {
         val_tmp = resolve_fields(file, field->value, context);
