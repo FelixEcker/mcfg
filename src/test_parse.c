@@ -30,7 +30,7 @@ void print_structure(struct mcfg_file* file) {
 
 int main() {
   struct mcfg_file* file = malloc(sizeof(mcfg_file));
-  file->path = "./test.mcfg";
+  file->path = "./bugtest.mb";
   int result = parse_file(file);
 
   if ((result & MCFG_ERR_MASK_ERRNO) == MCFG_ERR_MASK_ERRNO)

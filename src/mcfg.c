@@ -384,6 +384,24 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   if (in == NULL || strcmp(in, "") == 0) return "";
   char *prefix = bstrcpy_until(in+in_offs-1, in, ' ');
   char *postfix = strcpy_until(in+in_offs+len+1, ' ');
+  int prefix_len = 0;
+  int postfix_len = 0;
+
+  if (prefix[strlen(prefix)-1] == ':' && field.type == LIST) {
+    free(prefix);
+    prefix = NULL;
+  }
+
+  if (postfix[0] == ':' && field.type == LIST) {
+    free(postfix);
+    postfix = NULL;
+  }
+
+  if (prefix != NULL)
+    prefix_len = strlen(prefix);
+
+  if (postfix != NULL)
+    postfix_len = strlen(postfix);
 
   char delimiter[] = ":";
   char *field_cpy = resolve_fields(file, field.value, context);
@@ -392,13 +410,15 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   if (f_elem == NULL)
     return "";
 
-  char *result = malloc(strlen(f_elem)+strlen(prefix)+strlen(postfix)+1);
+  char *result = malloc(strlen(f_elem)+prefix_len+postfix_len+1);
 
+  const int base_size = prefix_len+postfix_len+2;
   int offs = 0;
   while (f_elem != NULL) {
+    printf("f_elem=%s\n", f_elem);
     if (offs > 0) {
       int size =
-        strlen(result)+strlen(f_elem)+strlen(prefix)+strlen(postfix)+2;
+        strlen(result)+strlen(f_elem)+base_size;
       result = realloc(
                   result, size
                 );
@@ -406,7 +426,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
       offs++;
     }
 
-    if (offs > 0) {
+    if (offs > 0 && prefix != NULL) {
       memcpy(result+offs, prefix, strlen(prefix));
       offs += strlen(prefix);
     }
@@ -415,7 +435,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
     offs += strlen(f_elem);
     f_elem = strtok(NULL, delimiter);
 
-    if (f_elem != NULL) {
+    if (f_elem != NULL && postfix != NULL) {
       strcpy(result+offs, postfix);
       offs += strlen(postfix);
     }
@@ -455,6 +475,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
 
       char *name;
 
+      // terminator offset
       int term_offs = len-2;
       if (is_local) {
         // Subtract two from length to account for $() = -3
@@ -494,9 +515,12 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
       char *val_tmp;
       if (field->type == FT_LIST) {
         val_tmp = format_list_field(file, (*field), context, in, i, len);
+
       } else {
         val_tmp = resolve_fields(file, field->value, context);
       }
+
+      printf("val_tmp=%s\n", val_tmp);
 
       n_fields++;
       if (n_fields > 1) {
