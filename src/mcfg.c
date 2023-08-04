@@ -407,8 +407,8 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   char *field_cpy = resolve_fields(file, field.value, context, 1);
 
   char *f_elem = strtok(field_cpy, delimiter);
-  if (f_elem == NULL)
-    return "";
+	if (f_elem == NULL)
+		return "";
 
   char *result = malloc(strlen(f_elem)+prefix_len+postfix_len+1);
 
@@ -538,9 +538,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
 
   char *out = NULL;
   if (n_fields == 0) {
-    out = malloc(strlen(in)+1);
-    strcpy(out, in);
-
+    out = strdup(in);
     goto resolve_fields_finished;
   }
 
