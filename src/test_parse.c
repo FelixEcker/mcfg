@@ -30,7 +30,7 @@ void print_structure(struct mcfg_file* file) {
 
 int main() {
   struct mcfg_file* file = malloc(sizeof(mcfg_file));
-  file->path = "./test.mcfg";
+  file->path = "./bugtest.mb";
   int result = parse_file(file);
 
   if ((result & MCFG_ERR_MASK_ERRNO) == MCFG_ERR_MASK_ERRNO)
@@ -41,12 +41,12 @@ int main() {
     printf("Parsing failed: 0x%.8x\n", result);
   } else {
     print_structure(file);
-    printf("%s\n",
-           resolve_fields((*file),
+		char *resolved = resolve_fields((*file),
               find_field(file, ".config/mariebuild/finalize_cmd")->value, 
-              ".config/mariebuild/"
-           )
-          );
+              ".config/mariebuild/", 0
+           );
+    printf("%s\n", resolved);
+		free(resolved);
   }
 
   free_mcfg_file(file);

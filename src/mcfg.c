@@ -23,6 +23,28 @@
 
 #include <butter/strutils.h>
 
+/******** file private ********/
+
+static mcfg_stype strtostype(char *str) {
+  if (strcmp(str, "fields") == 0)
+    return ST_FIELDS;
+
+  if (strcmp(str, "lines") == 0)
+    return ST_LINES;
+
+  return ST_UNKNOWN;
+}
+
+static mcfg_ftype strtoftype(char *str) {
+  if (strcmp(str, "str") == 0)
+    return FT_STRING;
+
+  if (strcmp(str, "list") == 0)
+    return FT_LIST;
+
+  return FT_UNKNOWN;
+}
+
 /******** mcfg.h ********/
 
 void free_mcfg_file(mcfg_file* file) {
@@ -124,26 +146,6 @@ int register_field(struct mcfg_section* section, mcfg_ftype type,
   return MCFG_OK;
 }
 
-mcfg_stype strtostype(char *str) {
-  if (strcmp(str, "fields") == 0)
-    return FIELDS;
-
-  if (strcmp(str, "lines") == 0)
-    return LINES;
-
-  return UNKNOWN;
-}
-
-mcfg_ftype strtoftype(char *str) {
-  if (strcmp(str, "str") == 0)
-    return STRING;
-
-  if (strcmp(str, "list") == 0)
-    return LIST;
-
-  return UNKNOWN;
-}
-
 int parse_line(struct mcfg_file* file, char *line) {
   char delimiter[] = " ";
   line = trim_whitespace(line);
@@ -158,7 +160,7 @@ int parse_line(struct mcfg_file* file, char *line) {
 
     if (strcmp(token, "fields") == 0 || strcmp(token, "lines") == 0) {
       mcfg_stype type = strtostype(token);
-      if (type == UNKNOWN)
+      if (type == ST_UNKNOWN)
         return MCFG_PERR_INVALID_SYNTAX;
 
       token = strtok(NULL, delimiter);
@@ -181,7 +183,7 @@ int parse_line(struct mcfg_file* file, char *line) {
     mcfg_sector *sector = &file->sectors[file->sector_count-1];
     mcfg_section *section = &sector->sections[sector->section_count-1];
 
-    if (section->type == FIELDS) {
+    if (section->type == ST_FIELDS) {
       mcfg_ftype type = strtoftype(token);
       token = strtok(NULL, delimiter);
       if (token == NULL)
@@ -382,21 +384,40 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   if (in == NULL || strcmp(in, "") == 0) return "";
   char *prefix = bstrcpy_until(in+in_offs-1, in, ' ');
   char *postfix = strcpy_until(in+in_offs+len+1, ' ');
+  int prefix_len = 0;
+  int postfix_len = 0;
+
+  if (prefix[strlen(prefix)-1] == ':' && field.type == FT_LIST) {
+    free(prefix);
+    prefix = NULL;
+  }
+
+  if (postfix[0] == ':' && field.type == FT_LIST) {
+    free(postfix);
+    postfix = NULL;
+  }
+
+  if (prefix != NULL)
+    prefix_len = strlen(prefix);
+
+  if (postfix != NULL)
+    postfix_len = strlen(postfix);
 
   char delimiter[] = ":";
-  char *field_cpy = resolve_fields(file, field.value, context);
+  char *field_cpy = resolve_fields(file, field.value, context, 1);
 
   char *f_elem = strtok(field_cpy, delimiter);
-  if (f_elem == NULL)
-    return "";
+	if (f_elem == NULL)
+		return "";
 
-  char *result = malloc(strlen(f_elem)+strlen(prefix)+strlen(postfix)+1);
+  char *result = malloc(strlen(f_elem)+prefix_len+postfix_len+1);
 
+  const int base_size = prefix_len+postfix_len+2;
   int offs = 0;
   while (f_elem != NULL) {
     if (offs > 0) {
       int size =
-        strlen(result)+strlen(f_elem)+strlen(prefix)+strlen(postfix)+2;
+        strlen(result)+strlen(f_elem)+base_size;
       result = realloc(
                   result, size
                 );
@@ -404,7 +425,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
       offs++;
     }
 
-    if (offs > 0) {
+    if (offs > 0 && prefix != NULL) {
       memcpy(result+offs, prefix, strlen(prefix));
       offs += strlen(prefix);
     }
@@ -413,7 +434,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
     offs += strlen(f_elem);
     f_elem = strtok(NULL, delimiter);
 
-    if (f_elem != NULL) {
+    if (f_elem != NULL && postfix != NULL) {
       strcpy(result+offs, postfix);
       offs += strlen(postfix);
     }
@@ -422,10 +443,10 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   memcpy(result+offs, str_terminator, 1);
 
   free(field_cpy);
-  if (prefix != NULL && strcmp(prefix, "") != 0)
+  if (prefix != NULL)
     free(prefix);
-  if (postfix != NULL && strcmp(postfix, "") != 0)
-    free(postfix);
+  if (postfix != NULL) 
+		free(postfix);
 
   return result;
 }
@@ -433,7 +454,8 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
 /* TODO: This is singlehandidly the worst code ive ever written, this needs a
  * desperate cleanup its so fucking long and confusing
  * */
-char *resolve_fields(struct mcfg_file file, char *in, char *context) {
+char *resolve_fields(struct mcfg_file file, char *in, char *context, 
+                       int leave_lists) {
   int n_fields = 0;
   int *field_indexes = malloc(sizeof(int));
   int *field_lens    = malloc(sizeof(int));
@@ -453,8 +475,10 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
 
       char *name;
 
+      // terminator offset
       int term_offs = len-2;
-      if (is_local) {
+      
+			if (is_local) {
         // Subtract two from length to account for $() = -3
         // and the NULL Byte = +1
         name = malloc(strlen(context) + (len - 1));
@@ -490,10 +514,10 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
         goto resolve_fields_stop;
 
       char *val_tmp;
-      if (field->type == LIST) {
+      if (field->type == FT_LIST && leave_lists != 1) {
         val_tmp = format_list_field(file, (*field), context, in, i, len);
       } else {
-        val_tmp = resolve_fields(file, field->value, context);
+        val_tmp = resolve_fields(file, field->value, context, leave_lists);
       }
 
       n_fields++;
@@ -514,9 +538,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context) {
 
   char *out = NULL;
   if (n_fields == 0) {
-    out = malloc(strlen(in)+1);
-    strcpy(out, in);
-
+    out = strdup(in);
     goto resolve_fields_finished;
   }
 
