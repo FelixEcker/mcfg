@@ -16,4 +16,4 @@ sector .config
     str release_flags '-O3'
 
     str comp_cmd '$(compiler) $(mode_flags) $(std_flags) out/$(file).o src/$(file).c'
-    str finalize_cmd 'ar -rc $(libname) out/$(files).o && ranlib $(libname)'
+    str finalize_cmd 'sh -c "ar -rc $(libname) out/$(files).o && ranlib $(libname)"'
