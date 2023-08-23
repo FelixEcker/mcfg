@@ -89,11 +89,46 @@ void free_mcfg_file(mcfg_file* file);
  *       of the targeted mcfg-file need to be reassigned since registering
  *       breaks the old pointers.
  */
+
+/* Register a sector into the provided mcfg_file struct
+ *
+ * Parameters:
+ *   file: The file to which the sector is to be added
+ *   name: The name of the sector to be added
+ *
+ * Returns:
+ *  One of the declared MCFG return codes; MCFG_OK if everything was successful
+ */
 int register_sector(struct mcfg_file* file, char *name);
+
+/* Register a section into the provided mcfg_sector struct
+ *
+ * Parameters:
+ *   sector: The sector to which the section is to be added to
+ *   type  : The type of the section to be added
+ *   name  : The name of the section to be added
+ *
+ * Returns:
+ *  One of the declared MCFG return codes; MCFG_OK if everything was successful
+ */
 int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name);
+
+/* Register a field into the provided mcfg_section struct
+ *
+ * Parameters:
+ *   section: The section to which the field is to be added to
+ *   type   : The type of the field which is to be added
+ *   name   : The name of the section which is to be added
+ *   value  : The value of the section which is to be added
+ *
+ * Returns:
+ *  One of the declared MCFG return codes; MCFG_OK if everything was successful
+ */
 int register_field(struct mcfg_section* section, mcfg_ftype type,
                        char *name, char *value);
 
+/* Parses the provided line for the provided mcfg_file struct
+ */
 int parse_line(struct mcfg_file* file, char *line);
 
 /* Parses the file under the path in file->path line by line,
@@ -108,7 +143,7 @@ mcfg_section *find_section(struct mcfg_file* file, char *path);
 mcfg_field *find_field(struct mcfg_file* file, char *path);
 
 /* Formats the contents of a list field.
-
+ *
  * Parameters:
  *   file   : The file structure from which to take the files field
  *   field  : The field to be formatted
@@ -164,7 +199,7 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
  *     The caller must free the memory allocated for the resolved string
  *     when it's no longer needed.
  */
-char *resolve_fields(struct mcfg_file file, char *in, char *context, 
+char *resolve_fields(struct mcfg_file file, char *in, char *context,
                        int leave_lists);
 
 #endif

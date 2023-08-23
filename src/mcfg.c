@@ -1,5 +1,5 @@
 /*
- * mcfg_parse.c ; author: Marie Eckert
+ * mcfg.c ; author: Marie Eckert
  *
  * mcfg parser and utilities.
  * This source file and its header originally stem from mariebuild and have
