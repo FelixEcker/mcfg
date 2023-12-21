@@ -4,10 +4,10 @@
  */
 
 #include <mcfg.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-void print_structure(struct mcfg_file* file) {
+void print_structure(struct mcfg_file *file) {
   printf("\n==========================\n\n");
   for (int i = 0; i < file->sector_count; i++) {
     mcfg_sector sector = file->sectors[i];
@@ -29,7 +29,7 @@ void print_structure(struct mcfg_file* file) {
 }
 
 int main() {
-  struct mcfg_file* file = malloc(sizeof(mcfg_file));
+  struct mcfg_file *file = malloc(sizeof(mcfg_file));
   file->path = "./bugtest.mb";
   int result = parse_file(file);
 
@@ -41,12 +41,11 @@ int main() {
     printf("Parsing failed: 0x%.8x\n", result);
   } else {
     print_structure(file);
-		char *resolved = resolve_fields((*file),
-              find_field(file, ".config/mariebuild/finalize_cmd")->value, 
-              ".config/mariebuild/", 0
-           );
+    char *resolved = resolve_fields(
+        (*file), find_field(file, ".config/mariebuild/finalize_cmd")->value,
+        ".config/mariebuild/", 0);
     printf("%s\n", resolved);
-		free(resolved);
+    free(resolved);
   }
 
   free_mcfg_file(file);

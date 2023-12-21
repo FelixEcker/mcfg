@@ -13,76 +13,68 @@
 #ifndef MCFG_H
 #define MCFG_H
 
-#define MCFG_OK                      0
-#define MCFG_ERR_UNKNOWN             0x00000001
-#define MCFG_PERR_MASK               0x10000000
-#define MCFG_PERR_MISSING_REQUIRED   0x10000001
-#define MCFG_PERR_DUPLICATE_SECTION  0x10000002
-#define MCFG_PERR_DUPLICATE_SECTOR   0x10000003
-#define MCFG_PERR_DUPLICATE_FIELD    0x10000004
+#define MCFG_OK 0
+#define MCFG_ERR_UNKNOWN 0x00000001
+#define MCFG_PERR_MASK 0x10000000
+#define MCFG_PERR_MISSING_REQUIRED 0x10000001
+#define MCFG_PERR_DUPLICATE_SECTION 0x10000002
+#define MCFG_PERR_DUPLICATE_SECTOR 0x10000003
+#define MCFG_PERR_DUPLICATE_FIELD 0x10000004
 #define MCFG_PERR_INVALID_IDENTIFIER 0x10000005
-#define MCFG_PERR_INVALID_SYNTAX     0x10000006
-#define MCFG_PERR_INVALID_FTYPE      0x10000007
-#define MCFG_PERR_INVALID_STYPE      0x10000008
-#define MCFG_ERR_MASK_ERRNO          0xf0000000
+#define MCFG_PERR_INVALID_SYNTAX 0x10000006
+#define MCFG_PERR_INVALID_FTYPE 0x10000007
+#define MCFG_PERR_INVALID_STYPE 0x10000008
+#define MCFG_ERR_MASK_ERRNO 0xf0000000
 
 /* Used to set the type of a field. If the type ever is FT_UNKOWN an error
  * should be thrown
  */
-typedef enum mcfg_ftype {
-  FT_STRING,
-  FT_LIST,
-  FT_UNKNOWN
-} mcfg_ftype;
+typedef enum mcfg_ftype { FT_STRING, FT_LIST, FT_UNKNOWN } mcfg_ftype;
 
 /* Used to set the type of a sector. If the type ever is ST_UNKNOWN an error
  * should be thrown
  */
-typedef enum mcfg_stype {
-  ST_FIELDS,
-  ST_LINES,
-	ST_UNKNOWN
-} mcfg_stype;
+typedef enum mcfg_stype { ST_FIELDS, ST_LINES, ST_UNKNOWN } mcfg_stype;
 
 /* Holds a field specified within a config section.
  */
 typedef struct mcfg_field {
-  mcfg_ftype  type;
-  char       *name;
-  char       *value;
+  mcfg_ftype type;
+  char *name;
+  char *value;
 } mcfg_field;
 
 /* Defines a section of a sector within a mcfg file
  */
 typedef struct mcfg_section {
-  mcfg_stype  type;
-  char       *name;
-  int         section_type;
-  char       *lines;
-  int         field_count;
+  mcfg_stype type;
+  char *name;
+  int section_type;
+  char *lines;
+  int field_count;
   mcfg_field *fields;
 } mcfg_section;
 
 /* Defines a sector of a mcfg file
  */
 typedef struct mcfg_sector {
-  char       *name;
-  int        section_count;
+  char *name;
+  int section_count;
   mcfg_section *sections;
 } mcfg_sector;
 
 /* C-Representation of a mcfg file
  */
 typedef struct mcfg_file {
-  char      *path;
-  int       line;
-  int       sector_count;
+  char *path;
+  int line;
+  int sector_count;
   mcfg_sector *sectors;
 } mcfg_file;
 
 /* Completely and recursively free a mcfg_file struct
  */
-void free_mcfg_file(mcfg_file* file);
+void free_mcfg_file(mcfg_file *file);
 
 /* Parsing Functions */
 /* NOTE: After using any of these registering functions, pointers to members
@@ -99,7 +91,7 @@ void free_mcfg_file(mcfg_file* file);
  * Returns:
  *  One of the declared MCFG return codes; MCFG_OK if everything was successful
  */
-int register_sector(struct mcfg_file* file, char *name);
+int register_sector(struct mcfg_file *file, char *name);
 
 /* Register a section into the provided mcfg_sector struct
  *
@@ -111,7 +103,7 @@ int register_sector(struct mcfg_file* file, char *name);
  * Returns:
  *  One of the declared MCFG return codes; MCFG_OK if everything was successful
  */
-int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name);
+int register_section(struct mcfg_sector *sector, mcfg_stype type, char *name);
 
 /* Register a field into the provided mcfg_section struct
  *
@@ -124,23 +116,23 @@ int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name);
  * Returns:
  *  One of the declared MCFG return codes; MCFG_OK if everything was successful
  */
-int register_field(struct mcfg_section* section, mcfg_ftype type,
-                       char *name, char *value);
+int register_field(struct mcfg_section *section, mcfg_ftype type, char *name,
+                   char *value);
 
 /* Parses the provided line for the provided mcfg_file struct
  */
-int parse_line(struct mcfg_file* file, char *line);
+int parse_line(struct mcfg_file *file, char *line);
 
 /* Parses the file under the path in file->path line by line,
  * will return MCFG_OK if there were no errors.
  */
-int parse_file(struct mcfg_file* file);
+int parse_file(struct mcfg_file *file);
 
 /* Navigation Functions */
 
-mcfg_sector *find_sector(struct mcfg_file* file, char *sector_name);
-mcfg_section *find_section(struct mcfg_file* file, char *path);
-mcfg_field *find_field(struct mcfg_file* file, char *path);
+mcfg_sector *find_sector(struct mcfg_file *file, char *sector_name);
+mcfg_section *find_section(struct mcfg_file *file, char *path);
+mcfg_field *find_field(struct mcfg_file *file, char *path);
 
 /* Formats the contents of a list field.
  *
@@ -166,7 +158,7 @@ mcfg_field *find_field(struct mcfg_file* file, char *path);
  *  = out/file1.o out/file2.o
  */
 char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
-                         char *in, int in_offs, int len);
+                        char *in, int in_offs, int len);
 
 /*
  * Resolve the field values in the given input string by replacing field-
@@ -200,6 +192,6 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
  *     when it's no longer needed.
  */
 char *resolve_fields(struct mcfg_file file, char *in, char *context,
-                       int leave_lists);
+                     int leave_lists);
 
 #endif

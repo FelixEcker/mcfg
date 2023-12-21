@@ -16,9 +16,9 @@
 
 #include <mcfg.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include <butter/strutils.h>
@@ -47,7 +47,7 @@ static mcfg_ftype strtoftype(char *str) {
 
 /******** mcfg.h ********/
 
-void free_mcfg_file(mcfg_file* file) {
+void free_mcfg_file(mcfg_file *file) {
   for (int i = 0; i < file->sector_count; i++) {
     for (int j = 0; j < file->sectors[i].section_count; j++) {
       for (int k = 0; k < file->sectors[i].sections[j].field_count; k++) {
@@ -73,8 +73,9 @@ void free_mcfg_file(mcfg_file* file) {
 
 /* Parsing Functions */
 
-int register_sector(struct mcfg_file* file, char *name) {
-  if (name == NULL) return MCFG_ERR_UNKNOWN;
+int register_sector(struct mcfg_file *file, char *name) {
+  if (name == NULL)
+    return MCFG_ERR_UNKNOWN;
 
   // Check for duplicate sectors
   for (int i = 0; i < file->sector_count; i++)
@@ -87,7 +88,7 @@ int register_sector(struct mcfg_file* file, char *name) {
   if (wi == 0) {
     file->sectors = malloc(sizeof(mcfg_sector));
   } else {
-    file->sectors = realloc(file->sectors, (wi+1) * sizeof(mcfg_sector));
+    file->sectors = realloc(file->sectors, (wi + 1) * sizeof(mcfg_sector));
   }
 
   file->sectors[wi].section_count = 0;
@@ -96,8 +97,9 @@ int register_sector(struct mcfg_file* file, char *name) {
   return MCFG_OK;
 }
 
-int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name) {
-  if (name == NULL) return MCFG_ERR_UNKNOWN;
+int register_section(struct mcfg_sector *sector, mcfg_stype type, char *name) {
+  if (name == NULL)
+    return MCFG_ERR_UNKNOWN;
 
   // Check for duplicate sections
   for (int i = 0; i < sector->section_count; i++)
@@ -110,7 +112,8 @@ int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name) {
   if (wi == 0) {
     sector->sections = malloc(sizeof(mcfg_section));
   } else {
-    sector->sections = realloc(sector->sections, (wi+1) * sizeof(mcfg_section));
+    sector->sections =
+        realloc(sector->sections, (wi + 1) * sizeof(mcfg_section));
   }
 
   sector->sections[wi].field_count = 0;
@@ -121,9 +124,10 @@ int register_section(struct mcfg_sector* sector, mcfg_stype type, char *name) {
   return MCFG_OK;
 }
 
-int register_field(struct mcfg_section* section, mcfg_ftype type,
-                       char *name, char *value) {
-  if (name == NULL || value == NULL) return MCFG_ERR_UNKNOWN;
+int register_field(struct mcfg_section *section, mcfg_ftype type, char *name,
+                   char *value) {
+  if (name == NULL || value == NULL)
+    return MCFG_ERR_UNKNOWN;
 
   // Check for duplicate fields
   for (int i = 0; i < section->field_count; i++)
@@ -136,7 +140,7 @@ int register_field(struct mcfg_section* section, mcfg_ftype type,
   if (wi == 0) {
     section->fields = malloc(sizeof(mcfg_field));
   } else {
-    section->fields = realloc(section->fields, (wi+1) * sizeof(mcfg_field));
+    section->fields = realloc(section->fields, (wi + 1) * sizeof(mcfg_field));
   }
 
   section->fields[wi].type = type;
@@ -146,7 +150,7 @@ int register_field(struct mcfg_section* section, mcfg_ftype type,
   return MCFG_OK;
 }
 
-int parse_line(struct mcfg_file* file, char *line) {
+int parse_line(struct mcfg_file *file, char *line) {
   char delimiter[] = " ";
   line = trim_whitespace(line);
   char *token = strtok(line, delimiter);
@@ -156,7 +160,8 @@ int parse_line(struct mcfg_file* file, char *line) {
       token = strtok(NULL, delimiter);
 
       return register_sector(file, token);
-    } else if (strncmp(";", token, strlen(";")) == 0) break;
+    } else if (strncmp(";", token, strlen(";")) == 0)
+      break;
 
     if (strcmp(token, "fields") == 0 || strcmp(token, "lines") == 0) {
       mcfg_stype type = strtostype(token);
@@ -169,19 +174,19 @@ int parse_line(struct mcfg_file* file, char *line) {
         return MCFG_PERR_INVALID_SYNTAX;
 
       // Remove the colon at the end of the name
-      token[strlen(token)-1] = 0;
-      return register_section(&file->sectors[file->sector_count-1], 
-                                type, token);
+      token[strlen(token) - 1] = 0;
+      return register_section(&file->sectors[file->sector_count - 1], type,
+                              token);
     }
 
     if (file->sector_count == 0)
       return MCFG_PERR_INVALID_SYNTAX;
 
-    if (file->sectors[file->sector_count-1].section_count == 0)
+    if (file->sectors[file->sector_count - 1].section_count == 0)
       return MCFG_PERR_INVALID_SYNTAX;
 
-    mcfg_sector *sector = &file->sectors[file->sector_count-1];
-    mcfg_section *section = &sector->sections[sector->section_count-1];
+    mcfg_sector *sector = &file->sectors[file->sector_count - 1];
+    mcfg_section *section = &sector->sections[sector->section_count - 1];
 
     if (section->type == ST_FIELDS) {
       mcfg_ftype type = strtoftype(token);
@@ -191,14 +196,14 @@ int parse_line(struct mcfg_file* file, char *line) {
 
       char *name = token;
       char *content = strtok_asm_remain(delimiter);
-      if(content == NULL)
+      if (content == NULL)
         return MCFG_PERR_INVALID_SYNTAX;
 
       // Gets rid of the quotation marks around the value
       // TODO: Pontentially make this less cancerous
-      char *cleaned_content = malloc(strlen(content)-1);
-      memcpy(cleaned_content, content+1, strlen(content)-2);
-      memcpy(cleaned_content+strlen(content)-2, str_terminator, 1);
+      char *cleaned_content = malloc(strlen(content) - 1);
+      memcpy(cleaned_content, content + 1, strlen(content) - 2);
+      memcpy(cleaned_content + strlen(content) - 2, str_terminator, 1);
       free(content);
 
       int ret = register_field(section, type, name, cleaned_content);
@@ -218,15 +223,14 @@ int parse_line(struct mcfg_file* file, char *line) {
       }
 
       // Add missing newline
-      content = realloc(content, strlen(content)+2);
-      strcpy(content+strlen(content), newline);
+      content = realloc(content, strlen(content) + 2);
+      strcpy(content + strlen(content), newline);
 
       // Write content to section
       if (section->lines != NULL) {
         section->lines = realloc(section->lines,
-                                 strlen(section->lines)+
-                                 strlen(content)+1);
-        strcpy(section->lines+strlen(section->lines), content);
+                                 strlen(section->lines) + strlen(content) + 1);
+        strcpy(section->lines + strlen(section->lines), content);
       } else {
         section->lines = strdup(content);
       }
@@ -240,7 +244,7 @@ int parse_line(struct mcfg_file* file, char *line) {
   return MCFG_OK;
 }
 
-int parse_file(struct mcfg_file* build_file) {
+int parse_file(struct mcfg_file *build_file) {
   FILE *file;
   char *line = NULL;
   size_t len = 0;
@@ -288,28 +292,31 @@ char *get_path_elem(char *path, int n_elem) {
   int n = 0;
   int i = 0;
   while (n < n_elem) {
-    if (i == strlen(path)) return NULL;
-    if (path[i] == delimiter) n++;
+    if (i == strlen(path))
+      return NULL;
+    if (path[i] == delimiter)
+      n++;
     i++;
   }
 
   // Get len
   int len = 1;
 
-  while ((i+len) < strlen(path)) {
-    if (path[i+len] == delimiter) break;
+  while ((i + len) < strlen(path)) {
+    if (path[i + len] == delimiter)
+      break;
 
     len++;
   }
 
-  char *result = malloc(len+1);
-  memcpy(result, path+i, len);
-  memcpy(result+len, str_terminator, 1);
+  char *result = malloc(len + 1);
+  memcpy(result, path + i, len);
+  memcpy(result + len, str_terminator, 1);
 
   return result;
 }
 
-mcfg_sector *find_sector(struct mcfg_file* file, char *sector_name) {
+mcfg_sector *find_sector(struct mcfg_file *file, char *sector_name) {
   for (int i = 0; i < file->sector_count; i++)
     if (strcmp(file->sectors[i].name, sector_name) == 0)
       return &file->sectors[i];
@@ -317,7 +324,7 @@ mcfg_sector *find_sector(struct mcfg_file* file, char *sector_name) {
   return NULL;
 }
 
-mcfg_section *find_section(struct mcfg_file* file, char *path) {
+mcfg_section *find_section(struct mcfg_file *file, char *path) {
   char *sector_name = get_path_elem(path, 0);
   char *section_name = get_path_elem(path, 1);
 
@@ -343,7 +350,7 @@ mcfg_section *find_section(struct mcfg_file* file, char *path) {
   return section;
 }
 
-mcfg_field *find_field(struct mcfg_file* file, char *path) {
+mcfg_field *find_field(struct mcfg_file *file, char *path) {
   char *sector_name = get_path_elem(path, 0);
   char *section_name = get_path_elem(path, 1);
   char *field_name = get_path_elem(path, 2);
@@ -351,12 +358,10 @@ mcfg_field *find_field(struct mcfg_file* file, char *path) {
   if ((sector_name == NULL) || (section_name == NULL) || (field_name == NULL))
     return NULL;
 
-  sector_name = realloc(sector_name,
-                        strlen(sector_name)+strlen(section_name)+2);
-  mcfg_section *section = find_section(file,
-                                     strcat(strcat(sector_name, "/"),
-                                            section_name)
-                                    );
+  sector_name =
+      realloc(sector_name, strlen(sector_name) + strlen(section_name) + 2);
+  mcfg_section *section =
+      find_section(file, strcat(strcat(sector_name, "/"), section_name));
 
   free(sector_name);
   free(section_name);
@@ -380,14 +385,15 @@ mcfg_field *find_field(struct mcfg_file* file, char *path) {
 }
 
 char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
-                         char *in, int in_offs, int len) {
-  if (in == NULL || strcmp(in, "") == 0) return "";
-  char *prefix = bstrcpy_until(in+in_offs-1, in, ' ');
-  char *postfix = strcpy_until(in+in_offs+len+1, ' ');
+                        char *in, int in_offs, int len) {
+  if (in == NULL || strcmp(in, "") == 0)
+    return "";
+  char *prefix = bstrcpy_until(in + in_offs - 1, in, ' ');
+  char *postfix = strcpy_until(in + in_offs + len + 1, ' ');
   int prefix_len = 0;
   int postfix_len = 0;
 
-  if (prefix[strlen(prefix)-1] == ':' && field.type == FT_LIST) {
+  if (prefix[strlen(prefix) - 1] == ':' && field.type == FT_LIST) {
     free(prefix);
     prefix = NULL;
   }
@@ -407,46 +413,43 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
   char *field_cpy = resolve_fields(file, field.value, context, 1);
 
   char *f_elem = strtok(field_cpy, delimiter);
-	if (f_elem == NULL)
-		return "";
+  if (f_elem == NULL)
+    return "";
 
-  char *result = malloc(strlen(f_elem)+prefix_len+postfix_len+1);
+  char *result = malloc(strlen(f_elem) + prefix_len + postfix_len + 1);
 
-  const int base_size = prefix_len+postfix_len+2;
+  const int base_size = prefix_len + postfix_len + 2;
   int offs = 0;
   while (f_elem != NULL) {
     if (offs > 0) {
-      int size =
-        strlen(result)+strlen(f_elem)+base_size;
-      result = realloc(
-                  result, size
-                );
-      memcpy(result+offs, " ", 1);
+      int size = strlen(result) + strlen(f_elem) + base_size;
+      result = realloc(result, size);
+      memcpy(result + offs, " ", 1);
       offs++;
     }
 
     if (offs > 0 && prefix != NULL) {
-      memcpy(result+offs, prefix, strlen(prefix));
+      memcpy(result + offs, prefix, strlen(prefix));
       offs += strlen(prefix);
     }
 
-    memcpy(result+offs, f_elem, strlen(f_elem));
+    memcpy(result + offs, f_elem, strlen(f_elem));
     offs += strlen(f_elem);
     f_elem = strtok(NULL, delimiter);
 
     if (f_elem != NULL && postfix != NULL) {
-      strcpy(result+offs, postfix);
+      strcpy(result + offs, postfix);
       offs += strlen(postfix);
     }
   }
 
-  memcpy(result+offs, str_terminator, 1);
+  memcpy(result + offs, str_terminator, 1);
 
   free(field_cpy);
   if (prefix != NULL && strcmp(prefix, "") != 0)
     free(prefix);
   if (postfix != NULL && strcmp(postfix, "") != 0)
-		free(postfix);
+    free(postfix);
 
   return result;
 }
@@ -454,36 +457,38 @@ char *format_list_field(struct mcfg_file file, mcfg_field field, char *context,
 /* TODO: This is singlehandidly the worst code ive ever written, this needs a
  * desperate cleanup its so fucking long and confusing
  * */
-char *resolve_fields(struct mcfg_file file, char *in, char *context, 
-                       int leave_lists) {
+char *resolve_fields(struct mcfg_file file, char *in, char *context,
+                     int leave_lists) {
   int n_fields = 0;
   int *field_indexes = malloc(sizeof(int));
-  int *field_lens    = malloc(sizeof(int));
-  char **fieldvals   = malloc(sizeof(char*));
+  int *field_lens = malloc(sizeof(int));
+  char **fieldvals = malloc(sizeof(char *));
 
   // Resolve all fields and store their vals and indexes in the string
   for (int i = 0; i < strlen(in); i++) {
-    if ((in[i] == '$') && (in[i+1] == '(')) {
+    if ((in[i] == '$') && (in[i + 1] == '(')) {
       int len = 0;
       int is_local = 1;
 
       for (int j = i; j < strlen(in); j++) {
-        if (in[j] == '/') is_local = 0;
-        if (in[j] == ')') break;
+        if (in[j] == '/')
+          is_local = 0;
+        if (in[j] == ')')
+          break;
         len++;
       }
 
       char *name;
 
       // terminator offset
-      int term_offs = len-2;
-      
-			if (is_local) {
+      int term_offs = len - 2;
+
+      if (is_local) {
         // Subtract two from length to account for $() = -3
         // and the NULL Byte = +1
         name = malloc(strlen(context) + (len - 1));
         memcpy(name, context, strlen(context));
-        memcpy(name+strlen(context), in+i+2, len-2);
+        memcpy(name + strlen(context), in + i + 2, len - 2);
         term_offs += strlen(context);
       } else {
         char prefix[] = ".config/";
@@ -491,23 +496,23 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
 
         // Create temporary copy of raw name for prefix checking
         char *tmp_name = malloc((len - 1));
-        memcpy(tmp_name, in+i+2, len-2);
-        memcpy(tmp_name+len-2, str_terminator, 1);
+        memcpy(tmp_name, in + i + 2, len - 2);
+        memcpy(tmp_name + len - 2, str_terminator, 1);
 
         if (str_startswith(tmp_name, prefix) != 0) {
           name = malloc(strlen(prefix) + (len - 1));
           memcpy(name, prefix, strlen(prefix));
           offs += strlen(prefix);
         } else {
-          name = malloc(len-2);
+          name = malloc(len - 2);
         }
 
-        memcpy(name+offs, in+i+2, len-2);
+        memcpy(name + offs, in + i + 2, len - 2);
         term_offs += offs;
         free(tmp_name);
       }
 
-      memcpy(name+term_offs, str_terminator, 1);
+      memcpy(name + term_offs, str_terminator, 1);
 
       mcfg_field *field = find_field(&file, name);
       if ((field == NULL) || (field->value == NULL))
@@ -522,14 +527,14 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
 
       n_fields++;
       if (n_fields > 1) {
-        field_indexes = realloc(field_indexes, n_fields*sizeof(int));
-        field_lens    = realloc(field_lens   , n_fields*sizeof(int));
-        fieldvals     = realloc(fieldvals    , n_fields*sizeof(char*));
+        field_indexes = realloc(field_indexes, n_fields * sizeof(int));
+        field_lens = realloc(field_lens, n_fields * sizeof(int));
+        fieldvals = realloc(fieldvals, n_fields * sizeof(char *));
       }
 
-      field_indexes[n_fields-1] = i;
-      field_lens[n_fields-1]    = len;
-      fieldvals[n_fields-1]     = val_tmp;
+      field_indexes[n_fields - 1] = i;
+      field_lens[n_fields - 1] = len;
+      fieldvals[n_fields - 1] = val_tmp;
 
     resolve_fields_stop:
       free(name);
@@ -548,7 +553,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
 
   for (int i = 0; i < n_fields; i++) {
     int len = field_lens[i];
-    int ix  = field_indexes[i];
+    int ix = field_indexes[i];
     char *val = fieldvals[i];
 
     // allocate memory (strlen(val) + ix-i_offs)
@@ -559,7 +564,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
     }
 
     // copy from in i_offs <-> ix to out with o_offs
-    memcpy(out+o_offs, in + i_offs, ix - i_offs);
+    memcpy(out + o_offs, in + i_offs, ix - i_offs);
 
     // add ix - i_offs to o_offs
     o_offs += ix - i_offs;
@@ -568,7 +573,7 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
     i_offs = ix + len + 1;
 
     // copy val to o_offs
-    memcpy(out+o_offs, val, strlen(val));
+    memcpy(out + o_offs, val, strlen(val));
 
     // add strlen of val to o_offs
     o_offs += strlen(val);
@@ -579,13 +584,13 @@ char *resolve_fields(struct mcfg_file file, char *in, char *context,
     int missing = strlen(in) - i_offs;
 
     out = realloc(out, o_offs + missing);
-    memcpy(out+o_offs, in+i_offs, missing);
+    memcpy(out + o_offs, in + i_offs, missing);
     o_offs += missing;
   }
 
   // Append Terminator
-  out = realloc(out, o_offs+1);
-  memcpy(out+o_offs, str_terminator, 1);
+  out = realloc(out, o_offs + 1);
+  memcpy(out + o_offs, str_terminator, 1);
 
 resolve_fields_finished:
   free(field_indexes);
